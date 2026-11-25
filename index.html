@@ -234,11 +234,15 @@ section.block{padding-top:clamp(56px,8vw,112px)}
 @keyframes live-pulse{50%{box-shadow:0 0 0 8px rgba(255,140,40,0)}}
 @media (prefers-reduced-motion:reduce){.live-banner .dot{animation:none}}
 .slide:has(video[data-sound]) figcaption{bottom:auto;top:14px}
-.slide.reel{background:radial-gradient(circle at 50% 50%,rgba(255,140,40,.18),transparent 60%),#0B0B0D}
-.slide.reel a{display:grid;justify-items:center;gap:14px;text-decoration:none;text-align:center;padding:24px}
-.slide.reel strong{font-family:var(--display);font-stretch:125%;font-variation-settings:"wdth" 125;font-weight:900;text-transform:uppercase;font-size:clamp(28px,4vw,56px);line-height:1}
-.play-big{width:84px;height:84px;border-radius:50%;background:var(--accent);color:#16110B;display:grid;place-items:center;font-size:30px;padding-left:6px;transition:transform .2s}
-.slide.reel a:hover .play-big{transform:scale(1.08)}
+.slide.yt{background:#0B0B0D}
+.slide.yt button{position:absolute;inset:0;width:100%;height:100%;border:0;padding:0;margin:0;background:#0B0B0D;cursor:pointer;display:grid;place-items:center}
+.slide.yt button img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.slide.yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.slide.yt.on figcaption{display:none}
+.play-big{position:relative;width:84px;height:84px;border-radius:50%;background:var(--accent);color:#16110B;display:grid;place-items:center;font-size:30px;padding-left:6px;transition:transform .2s;box-shadow:0 4px 24px rgba(0,0,0,.5)}
+.slide.yt button:hover .play-big{transform:scale(1.08)}
+.slide.yt button:focus-visible{outline:none}
+.slide.yt button:focus-visible .play-big{outline:2px solid var(--ink);outline-offset:4px}
 
 .back{display:inline-flex;margin-top:28px;text-decoration:none}
 .proj-head{padding-top:20px;padding-bottom:28px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:24px;align-items:end}
@@ -565,7 +569,7 @@ var P=[
   facts:[["Crew","4 people"],["Schedule","7 days, 12 to 16 hours a day"],["My part","Animation, backgrounds, soundtrack"],["In the carousel","Full film, team process clips, selected backgrounds"],["Recognition","Best Animation Under 20, Bragi Film Festival 2026 · Special Mention, Animafeat 2026 · Official Selection, Bragi Film Festival 2026 and HorrorHound TV · Best Rising Talent, university award"]],
   links:[["Watch on YouTube","https://youtu.be/2t4D2vqnlS0"]],
   cover:"img/mk-1.jpg",
-  media:[["video/malas-karas.mp4","Full film · sound on","img/mk-poster.jpg","sound"],["video/mk-process-1.mp4","Process · rough to colour · team work","img/mk-process-1-poster.jpg"],["video/mk-process-2.mp4","Process · rough to colour · team work","img/mk-process-2-poster.jpg"],["img/mk-bg-1.jpg","Background · painted with the team"],["img/mk-bg-2.jpg","Background · night version"],["img/mk-bg-3.jpg","Background · panoramic"],["img/mk-1.jpg","Still"],["img/mk-3.jpg","Still"],["img/mk-5.jpg","Still"],["img/mk-7.jpg","Still"],["link:https://youtu.be/2t4D2vqnlS0","Also on YouTube"]]},
+  media:[["yt:2t4D2vqnlS0","Full film · YouTube","img/mk-poster.jpg"],["video/mk-process-1.mp4","Process · rough to colour · team work","img/mk-process-1-poster.jpg"],["video/mk-process-2.mp4","Process · rough to colour · team work","img/mk-process-2-poster.jpg"],["img/mk-bg-1.jpg","Background · painted with the team"],["img/mk-bg-2.jpg","Background · night version"],["img/mk-bg-3.jpg","Background · panoramic"],["img/mk-1.jpg","Still"],["img/mk-3.jpg","Still"],["img/mk-5.jpg","Still"],["img/mk-7.jpg","Still"]]},
  {id:"urbex",t:"Urbex",cat:"film",sc:"Short film · 3rd year",tag:"In production",live:1,
   blurb:"Three kids set out to get a new TV before their favourite show airs.",
   text:["Three kids who spend their days between their cabin and the forest around it need a working TV before the new episode of their favourite show airs that night.","The film is in production right now with a crew of seven, so this page will keep growing as we make it.","In pre-production I took part in the character design, drawing some of the expressions and poses for the three kids. The sheets are in the carousel."],
@@ -654,7 +658,7 @@ function coverArt(p,c){
     :'<img src="'+c+'" alt="" loading="lazy">';
 }
 function card(p){
-  var c=cover(p),n=p.media.length,ok=c&&!/^link:/.test(c);
+  var c=cover(p),n=p.media.length,ok=c&&!/^yt:/.test(c);
   return '<a class="card" href="#'+p.id+'" data-cat="'+p.cat+'">'+
     '<div class="cover'+(ok?'':' ph')+'">'+(ok?coverArt(p,c):'<span>'+esc(p.t)+'</span>')+
     '<span class="count">'+n+(n===1?' slide':' slides')+'</span></div>'+
@@ -690,7 +694,7 @@ document.getElementById("home-grid").innerHTML=["flamethrower","hangar","malas-k
   if(!stage||!spin)return;
   var n=P.length,step=360/n,rh="";
   P.forEach(function(p,i){
-    var c=cover(p),img=(c&&!/^link:/.test(c))?c:"img/carlos.jpg";
+    var c=cover(p),img=(c&&!/^yt:/.test(c))?c:"img/carlos.jpg";
     rh+='<a class="ring-item" href="#'+p.id+'" style="--a:'+(i*step)+'deg" aria-label="'+esc(p.t)+'">'+coverArt(p,img)+'</a>';
   });
   spin.innerHTML=rh;
@@ -787,12 +791,29 @@ if(compareFrame&&compareTop&&compareHandle){
 /* project page + carousel */
 var track=document.getElementById("track"),thumbs=document.getElementById("thumbs"),counter=document.getElementById("counter"),prev=document.getElementById("prev"),next=document.getElementById("next"),cur=0,total=0;
 function slideHTML(m){
-  if(/^link:/.test(m[0]))return '<figure class="slide reel"><a href="'+m[0].slice(5)+'"><span class="play-big" aria-hidden="true">▶</span><strong>'+esc(m[1])+'</strong><span class="mono">Watch on YouTube</span></a></figure>';
+  if(/^yt:/.test(m[0]))return '<figure class="slide yt" data-yt="'+m[0].slice(3)+'" data-poster="'+(m[2]||"")+'">'+ytButton(m[0].slice(3),m[2],m[1])+'<figcaption>'+esc(m[1])+'</figcaption></figure>';
   var isV=/\.mp4$/.test(m[0]);
   /* RULE: every slide is 16:9. Any image that isn't gets a blurred fill of itself behind it, so nothing shows as a vertical strip. Assets should still be prepared at 16:9. */
   var fill=!isV&&!curP.keepRatio;
   return '<figure class="slide'+(fill?' fill':'')+'"'+(fill?' style="--bg:url(\''+m[0]+'\')"':'')+'>'+(isV?(m[3]==="sound"?'<video src="'+m[0]+'" poster="'+m[2]+'" controls playsinline preload="metadata" data-sound="1" aria-label="'+esc(m[1])+'"></video>':'<video src="'+m[0]+'" poster="'+m[2]+'" muted loop playsinline preload="metadata" aria-label="'+esc(m[1])+'"></video>'):'<img src="'+m[0]+'" alt="'+esc(m[1])+'" loading="lazy">')+'<figcaption>'+esc(m[1])+'</figcaption></figure>';
 }
+/* YouTube slides show a poster first; the youtube-nocookie player only loads on click */
+function ytButton(id,poster,label){
+  return '<button type="button" aria-label="Play '+esc(label)+'"><img src="'+(poster||"https://i.ytimg.com/vi/"+id+"/hqdefault.jpg")+'" alt="" loading="lazy"><span class="play-big" aria-hidden="true">▶</span></button>';
+}
+function ytStop(keep){
+  [].forEach.call(track.querySelectorAll(".slide.yt.on"),function(f){
+    if(f===keep)return;
+    f.classList.remove("on");
+    f.querySelector("iframe").outerHTML=ytButton(f.dataset.yt,f.dataset.poster,f.querySelector("figcaption").textContent);
+  });
+}
+track.addEventListener("click",function(e){
+  var b=e.target.closest(".slide.yt button");if(!b)return;
+  var f=b.parentNode;
+  f.classList.add("on");
+  b.outerHTML='<iframe src="https://www.youtube-nocookie.com/embed/'+f.dataset.yt+'?autoplay=1&rel=0&playsinline=1" title="'+esc(f.querySelector("figcaption").textContent)+'" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>';
+});
 var curP={};
 function showProject(p){
   curP=p;
@@ -806,7 +827,7 @@ function showProject(p){
   document.getElementById("p-facts").innerHTML=p.facts.map(function(f){return '<div><span class="mono">'+esc(f[0])+'</span><b>'+esc(f[1])+'</b></div>';}).join("");
   if(p.media.length){
     track.innerHTML=p.media.map(slideHTML).join("");
-    thumbs.innerHTML=p.media.map(function(m,i){var isV=/\.mp4$/.test(m[0]),isL=/^link:/.test(m[0]);return '<button type="button" data-i="'+i+'" aria-label="Show '+esc(m[1])+' ('+(i+1)+')">'+(isL?'<span class="play">▶ Reel</span>':'<img src="'+(m[2]||m[0])+'" alt="" loading="lazy">'+(isV?'<span class="play">▶</span>':''))+'</button>';}).join("");
+    thumbs.innerHTML=p.media.map(function(m,i){var isY=/^yt:/.test(m[0]),isV=isY||/\.mp4$/.test(m[0]);return '<button type="button" data-i="'+i+'" aria-label="Show '+esc(m[1])+' ('+(i+1)+')"><img src="'+(m[2]||(isY?"https://i.ytimg.com/vi/"+m[0].slice(3)+"/hqdefault.jpg":m[0]))+'" alt="" loading="lazy">'+(isV?'<span class="play">▶</span>':'')+'</button>';}).join("");
   }else{
     track.innerHTML='<figure class="slide ph-slide"><span>'+esc(p.t)+'</span><figcaption>Stills coming soon</figcaption></figure>';
     thumbs.innerHTML="";
@@ -820,6 +841,7 @@ function showProject(p){
 }
 function setCur(i){
   cur=i;counter.innerHTML="<b>"+pad(i+1)+"</b> / "+pad(total);
+  ytStop(track.children[i]);
   prev.disabled=i===0;next.disabled=i===total-1;
   [].forEach.call(thumbs.children,function(b,j){b.setAttribute("aria-current",j===i?"true":"false");if(j===i)thumbs.scrollLeft=Math.max(0,b.offsetLeft-thumbs.clientWidth/2+b.offsetWidth/2);});
   [].forEach.call(track.querySelectorAll("video"),function(v){var on=v.closest(".slide")===track.children[i];if(on&&!v.dataset.sound){var pr=v.play();if(pr&&pr.catch)pr.catch(function(){});}else v.pause();});
@@ -837,7 +859,7 @@ function route(){
   var h=(location.hash||"#home").slice(1),v=views.indexOf(h)>=0?h:(GH[h]?"section":(byId[h]?"project":"home"));
   document.querySelectorAll(".view").forEach(function(el){el.classList.toggle("active",el.id==="view-"+v);});
   document.querySelectorAll("[data-nav]").forEach(function(a){var on=a.dataset.nav===v||((v==="project"||v==="section")&&a.dataset.nav==="work");if(on)a.setAttribute("aria-current","page");else a.removeAttribute("aria-current");});
-  if(v!=="project")[].forEach.call(track.querySelectorAll("video"),function(x){x.pause();});
+  if(v!=="project"){[].forEach.call(track.querySelectorAll("video"),function(x){x.pause();});ytStop(null);}
   if(v==="project")showProject(byId[h]);
   if(v==="section")showSection(GH[h]);
   document.title=(v==="project"?byId[h].t+" · ":v==="section"?GH[h].t+" · ":v==="home"?"":v.charAt(0).toUpperCase()+v.slice(1)+" · ")+"Carlos Fabiani Collado";
